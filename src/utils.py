@@ -17,7 +17,9 @@ class BlockType(Enum):
     UNORDERED_LIST = "unordered_list"
     ORDERED_LIST = "ordered_list"
 
-def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str):
+def generate_pages_recursive(
+    dir_path_content: str, template_path: str, dest_dir_path: str, basepath: str = "/"
+):
     """Generate pages recursively from a content directory
     """
     if not os.path.exists(dir_path_content):
@@ -26,13 +28,25 @@ def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir
         os.makedirs(dest_dir_path)
     for file in os.listdir(dir_path_content):
         if file.endswith(".md"):
-            generate_page(os.path.join(dir_path_content, file), template_path, os.path.join(dest_dir_path, file.replace(".md", ".html")))
+            generate_page(
+                os.path.join(dir_path_content, file),
+                template_path,
+                os.path.join(dest_dir_path, file.replace(".md", ".html")),
+                basepath,
+            )
         elif os.path.isdir(os.path.join(dir_path_content, file)):
-            generate_pages_recursive(os.path.join(dir_path_content, file), template_path, os.path.join(dest_dir_path, file))
+            generate_pages_recursive(
+                os.path.join(dir_path_content, file),
+                template_path,
+                os.path.join(dest_dir_path, file),
+                basepath,
+            )
         else:
             raise ValueError(f"invalid file: {file}")
 
-def generate_page(from_path: str, template_path: str, dest_path: str):
+def generate_page(
+    from_path: str, template_path: str, dest_path: str, basepath: str = "/"
+):
     """Generate a page from a content file and a template file
     """
     print(f"Generating page from '{from_path}' to '{dest_path}' using template '{template_path}'")
@@ -42,7 +56,17 @@ def generate_page(from_path: str, template_path: str, dest_path: str):
         template_content = template_file.read()
     title = extract_title(md_content)
     html_content = markdown_to_html_node(md_content).to_html()
-    template_content = template_content.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
+    template_content = template_content.replace("{{ Title }}", title).replace(
+        "{{ Content }}", html_content
+    )
+    # Normalize basepath (ensure leading and trailing slash)
+    if not basepath.startswith("/"):
+        basepath = "/" + basepath
+    if not basepath.endswith("/"):
+        basepath = basepath + "/"
+    # Prefix absolute asset and link paths with basepath
+    template_content = template_content.replace('href="/', f'href="{basepath}')
+    template_content = template_content.replace('src="/', f'src="{basepath}')
     with open(dest_path, "w") as dest_file:
         dest_file.write(template_content)
 
@@ -55,13 +79,12 @@ def extract_title(markdown: str) -> str:
             return line[2:].strip()
     raise ValueError("no title found")
 
-def copy_static_to_public():
-    """Copy static files to public folder
-    """
+def copy_static_to_dir(dest_dir_path: str):
+    """Copy static files to a destination folder (clears it first)."""
     if not os.path.exists("./static"):
         raise FileNotFoundError("static folder not found")
-    reset_dir("./public")
-    copy_files("./static", "./public")
+    reset_dir(dest_dir_path)
+    copy_files("./static", dest_dir_path)
 
 def copy_files(src_path: str, dst_path: str, buffer_size: int = 1024 * 1024):
     """Recursively copy files/dirs from src_path to dst_path using only os and builtins."""
