@@ -1,0 +1,12 @@
+{
+  "configurations": [
+    {
+      "type": "python",
+      "name": "debug utils.py",
+      "request": "launch",
+      "justMyCode": false,
+      "args": [],
+      "program": "/Users/dixietech/Documents/BOOT_DEV/boot-dev-static-site-generator/src/utils.py"
+    }
+  ]
+}

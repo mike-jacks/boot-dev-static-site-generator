@@ -24,3 +24,6 @@ go.work.sum
 # env file
 .env
 __pycache__/
+
+# public folder
+public/

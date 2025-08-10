@@ -2,18 +2,15 @@
 main module
 """
 
-from textnode import TextNode, TextType
+from utils import copy_static_to_public, generate_pages_recursive
 
 
 def main():
     """
     main program
     """
-    text_node = TextNode(
-        "This is some anchor text", TextType.LINK, "https://www.boot.dev"
-    )
-    print(text_node)
-
+    copy_static_to_public()
+    generate_pages_recursive("content", "template.html", "public")
 
 if __name__ == "__main__":
     main()
